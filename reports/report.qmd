@@ -91,11 +91,15 @@ List all non-countries.
 ## Once you figure it out, write a query to list all the non-countries
 ## (skills: select, where)
 
-run_sql_and_return_html(cnx,"""
-select *
-from world_bank_data.wdi_country
-where is_country = 0
+run_sql_and_return_html(cnx, """
+select
+  `Long Name` , `Region`
+from
+  world_bank_data.wdi_country
+where
+  region is NULL
 """)
+
 ```
 
 ## Task 4
@@ -112,25 +116,24 @@ Create your own copy of WDI_Country containing just countries.
 
 # drop table
 execute_ddl(cnx,"""
-drop table if exists wdi_country;
+drop table if exists sp25_wilkinsonla_user.wdi_country;
 """)
 ```
 
 ```{python}
 # create table
 execute_ddl(cnx,"""
-create table wdi_country as
+create table sp25_wilkinsonla_user.wdi_country as
 select *
 from world_bank_data.wdi_country
-where is_country = 1
+where not region is NULL
 """)
 ```
 
 ```{python}
 # show number of records
 run_sql_and_return_html(cnx,"""
-select count(*) as "Country Count"
-from wdi_country
+select count(*) from sp25_wilkinsonla_user.wdi_country;
 """)
 ```
 
@@ -142,9 +145,8 @@ According to the World Bank, in 2020 there were how many countries in the world?
 ## (skills: select, aggregate)
 
 run_sql_and_return_html(cnx,"""
-select count(*) as "Countries in 2020"
+select count(*) 
 from world_bank_data.wdi_country
-where is_country = 1
 """)
 
 ```
@@ -161,9 +163,10 @@ What are all unique values of region in the wdi_country table?
 ## (skills: select, aggregate, order by)
 
 run_sql_and_return_html(cnx,"""
-select distinct country_region
-from world_bank_data.wdi_country
-order by country_region
+select `Region`
+from wdi_country
+group by `Region`
+order by `Region`
 """)
 
 ```
@@ -177,11 +180,10 @@ How many countries are in each region?
 ## (skills: select, aggregate, group by, order by)
 
 run_sql_and_return_html(cnx,"""
-select country_region, count(*) as num_countries
-from world_bank_data.wdi_country
-where is_country = 1
-group by country_region
-order by num_countries desc
+select `Region`, count(*) as "Count"
+from wdi_country
+group by `Region`
+order by `Count` desc
 """)
 
 ```
@@ -195,10 +197,9 @@ List the country full names and regions for all countries in north america.
 ## (skills: select, where, order by)
 
 run_sql_and_return_html(cnx,"""
-select country_full_name, country_region
-from world_bank_data.wdi_country
-where country_region = 'North America' and is_country = 1
-order by country_full_name
+select `Long Name`, `Region`
+from wdi_country
+where `Region`=`North America`
 """)
 
 
@@ -212,9 +213,9 @@ order by country_full_name
 ## (skills: select, where)
 
 run_sql_and_return_html(cnx,"""
-select country_region, country_short_name, country_full_name
-from world_bank_data.wdi_country
-where country_short_name = 'Qatar'
+select `Long Name`,`Region`
+from wdi_country
+where `Short Name`=`Qatar`
 """)
 
 ```
@@ -228,13 +229,11 @@ where country_short_name = 'Qatar'
 ## (skills: select, where, order by)
 
 run_sql_and_return_html(cnx,"""
-select country_code, country_short_name, country_abbr, country_wb_abbr, country_region
-from world_bank_data.wdi_country
-where country_abbr is not null and country_wb_abbr is not null
-and country_abbr <> country_wb_abbr
-order by country_short_name
+select `Country Code`,`Long Name`,`2-alpha code`,`WB-2 code`,`Region`
+from wdi_country
+where
+  `2-alpha code` <> `WB-2 code`
 """)
-
 
 ```
 
@@ -247,11 +246,9 @@ order by country_short_name
 ## (skills: select, aggregate, group by, order by)
 
 run_sql_and_return_html(cnx,"""
-select income_category, count(*) as num_countries
-from world_bank_data.wdi_country
-where is_country = 1
-group by income_category
-order by num_countries desc
+select `Income Group` , count(*)
+from wdi_country
+group by `Income Group`
 """)
 
 ```
@@ -586,7 +583,7 @@ My approach to tackling more complex tasks, such as tasks 18, 23, and 24, was to
 
 3. Learning Takeaways: Consider the overall learning experience from this assignment. What were the biggest takeaways about working with SQL for data analysis and transformation? How do you think these skills will apply in real-world scenarios or future coursework?
 
-This assignment was definitely a major learning experience. The biggest takeaways for me was that complex queries can be broken down into smaller queries that combine to do something more complicated, much similar to functions or methods in a larger program. I think these skills will be incredibly helpful for the future when I have to work with databased more often, and this will be helpful next semester when I begin Capstone because being able to analyze and transform data is a valuable skill to have.
+This assignment was definitely a major learning experience. The biggest takeaways for me was that complex queries can be broken down into smaller queries that combine to do something more complicated, much similar to functions or methods in a larger program. I think these skills will be incredibly helpful for the future when I have to work with databased more often, and this will be helpful next semester when I begin Capstone because being able to analyze and transform data is a valuable skill.
 
 
 # README
