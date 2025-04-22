@@ -2,7 +2,8 @@
 title: Homework 8 - World Bank Analysis
 ---
 
-GITHUB URL:  <https://github.com/cmsc-vcu/cmsc408-sp2025-hw8-jleonard99>
+
+GITHUB URL:  <https://github.com/cmsc-vcu/cmsc408-sp2025-hw8-wilkinsonla#>
 
 
 # Problem Background
@@ -91,7 +92,9 @@ List all non-countries.
 ## (skills: select, where)
 
 run_sql_and_return_html(cnx,"""
-select "doh!" as "Homer says ..." from dual
+select *
+from world_bank_data.wdi_country
+where is_country = 0
 """)
 ```
 
@@ -116,13 +119,18 @@ drop table if exists wdi_country;
 ```{python}
 # create table
 execute_ddl(cnx,"""
+create table wdi_country as
+select *
+from world_bank_data.wdi_country
+where is_country = 1
 """)
 ```
 
 ```{python}
 # show number of records
 run_sql_and_return_html(cnx,"""
-select "doh!" as "Homer says ..." from dual
+select count(*) as "Country Count"
+from wdi_country
 """)
 ```
 
