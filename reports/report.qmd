@@ -146,7 +146,7 @@ According to the World Bank, in 2020 there were how many countries in the world?
 
 run_sql_and_return_html(cnx,"""
 select count(*) 
-from world_bank_data.wdi_country
+from sp25_wilkinsonla_user.wdi_country
 """)
 
 ```
@@ -164,7 +164,7 @@ What are all unique values of region in the wdi_country table?
 
 run_sql_and_return_html(cnx,"""
 select `Region`
-from wdi_country
+from sp25_wilkinsonla_user.wdi_country
 group by `Region`
 order by `Region`
 """)
@@ -181,7 +181,7 @@ How many countries are in each region?
 
 run_sql_and_return_html(cnx,"""
 select `Region`, count(*) as "Count"
-from wdi_country
+from sp25_wilkinsonla_user.wdi_country
 group by `Region`
 order by `Count` desc
 """)
@@ -198,8 +198,8 @@ List the country full names and regions for all countries in north america.
 
 run_sql_and_return_html(cnx,"""
 select `Long Name`, `Region`
-from wdi_country
-where `Region`=`North America`
+from sp25_wilkinsonla_user.wdi_country
+where `Region`='North America'
 """)
 
 
@@ -213,9 +213,9 @@ where `Region`=`North America`
 ## (skills: select, where)
 
 run_sql_and_return_html(cnx,"""
-select `Long Name`,`Region`
-from wdi_country
-where `Short Name`=`Qatar`
+select `Long Name`, `Region`
+from sp25_wilkinsonla_user.wdi_country
+where `Short Name`='Qatar'
 """)
 
 ```
@@ -230,7 +230,7 @@ where `Short Name`=`Qatar`
 
 run_sql_and_return_html(cnx,"""
 select `Country Code`,`Long Name`,`2-alpha code`,`WB-2 code`,`Region`
-from wdi_country
+from sp25_wilkinsonla_user.wdi_country
 where
   `2-alpha code` <> `WB-2 code`
 """)
@@ -247,7 +247,7 @@ where
 
 run_sql_and_return_html(cnx,"""
 select `Income Group` , count(*)
-from wdi_country
+from sp25_wilkinsonla_user.wdi_country
 group by `Income Group`
 """)
 
@@ -263,10 +263,9 @@ group by `Income Group`
 ## in the first column.
 
 run_sql_and_return_html(cnx,"""
-select country_short_name
-from world_bank_data.wdi_country
-where income_category = '' or income_category is null
-order by country_short_name
+select `Short Name`, `Country Code`, `Region`, `Income Group`
+from sp25_wilkinsonla_user.wdi_country
+where `Income Group` IS NULL
 """)
 
 ```
@@ -280,9 +279,10 @@ order by country_short_name
 ## NOTE - if you get this wrong, all subsequent tables will be wrong!
 
 execute_ddl(cnx,"""
-update world_bank_data.wdi_country
-set income_category = 'High income'
-where country_short_name = 'Kuwait'
+update sp25_wilkinsonla_user.wdi_country
+set `Income Group` = 'High income'
+where `Short Name` = 'Venezuela'
+commit;
 """)
 
 ```
@@ -290,9 +290,9 @@ where country_short_name = 'Kuwait'
 ## Now, display the country again to verify the change stuck!
 
 run_sql_and_return_html(cnx,"""
-select country_short_name, income_category
-from world_bank_data.wdi_country
-where country_short_name = 'Kuwait'
+select `Short Name`, `Country Code`, `Region`, `Income Group`
+from sp25_wilkinsonla_user.wdi_country
+where `Short Name` = 'Venezuela'
 """)
 
 ```
