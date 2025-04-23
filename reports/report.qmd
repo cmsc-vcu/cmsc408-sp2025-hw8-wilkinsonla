@@ -93,7 +93,7 @@ List all non-countries.
 
 run_sql_and_return_df(cnx, """
 select
-`Long Name`
+`Region`, `Short Name`, `Long Name`
 from
   world_bank_data.wdi_country
 where
