@@ -330,20 +330,18 @@ order by `Region`, `Income Group`
 ## and a column for the row totals.
 ## (skills: select, aggregate, group by, nested query)
 
-run_sql_and_return_html(cnx,"""
-SELECT 
-  IFNULL(`Region`, 'Unspecified') AS `Region`,
-  SUM(CASE WHEN `Income Group` = 'High income' THEN 1 ELSE 0 END) AS `High income`,
-  SUM(CASE WHEN `Income Group` = 'Upper middle income' THEN 1 ELSE 0 END) AS `Upper middle income`,
-  SUM(CASE WHEN `Income Group` = 'Lower middle income' THEN 1 ELSE 0 END) AS `Lower middle income`,
-  SUM(CASE WHEN `Income Group` = 'Low income' THEN 1 ELSE 0 END) AS `Low income`,
-  SUM(CASE WHEN `Income Group` IS NULL OR `Income Group` = '' OR 
-          `Income Group` NOT IN ('High income', 'Upper middle income', 'Lower middle income', 'Low income') 
-      THEN 1 ELSE 0 END) AS `Other`,
-  COUNT(*) AS `Total`
-FROM sp25_wilkinsonla_user.wdi_country
-GROUP BY `Region` WITH ROLLUP
-ORDER BY CASE WHEN `Region` IS NULL THEN 1 ELSE 0 END, `Region`
+run_sql_and_return_html(cnx, """
+select 
+  `Region`,
+  sum(case when `Income Group` = 'High income' then 1 else 0 end) as `High income`,
+  sum(case when `Income Group` = 'Upper middle income' then 1 else 0 end) as `Upper middle income`,
+  sum(case when `Income Group` = 'Lower middle income' then 1 else 0 end) as `Lower middle income`,
+  sum(case when `Income Group` = 'Low income' then 1 else 0 end) as `Low income`,
+  sum(case when `Income Group` is null or `Income Group` = '' then 1 else 0 end) as `Other`,
+  count(*) as `Total`
+from sp25_wilkinsonla_user.wdi_country
+group by `Region`
+order by `Region`
 """)
 
 ```
