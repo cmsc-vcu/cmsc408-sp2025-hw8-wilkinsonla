@@ -554,7 +554,7 @@ select
   b.`Income Group`,
   b.count as num_countries,
   t.total_count,
-  round((b.count * 100.0) / t.total_count, 2) as percent
+  round((b.count * 100.0) / t.total_count + 0.001, 1) as percent
 from base b, total t
 order by percent desc
 """)
