@@ -420,27 +420,30 @@ order by `Short Name`
 ## (skills: select, where, subqueries, joins)
 
 run_sql_and_return_html(cnx,"""
-with regions as (
-  select distinct `Region` from sp25_wilkinsonla_user.wdi_country
+WITH regions AS (
+  SELECT DISTINCT `Region` FROM sp25_wilkinsonla_user.wdi_country
 ),
-income_groups as (
-  select distinct `Income Group` from sp25_wilkinsonla_user.wdi_country
+income_groups AS (
+  SELECT DISTINCT `Income Group` FROM sp25_wilkinsonla_user.wdi_country
 ),
-all_combos as (
-  select r.`Region`, i.`Income Group`
-  from regions r
-  cross join income_groups i
+all_combos AS (
+  SELECT r.`Region`, i.`Income Group`
+  FROM regions r
+  CROSS JOIN income_groups i
 ),
-actual_combos as (
-  select distinct `Region`, `Income Group`
-  from sp25_wilkinsonla_user.wdi_country
+actual_combos AS (
+  SELECT DISTINCT `Region`, `Income Group`
+  FROM sp25_wilkinsonla_user.wdi_country
 )
-select *
-from all_combos
-where (`Region`, `Income Group`) not in (
-  select `Region`, `Income Group` from actual_combos
+SELECT 
+  ac.`Region`, 
+  ac.`Income Group`,
+  'missing' AS `Status`
+FROM all_combos ac
+WHERE (ac.`Region`, ac.`Income Group`) NOT IN (
+  SELECT `Region`, `Income Group` FROM actual_combos
 )
-order by `Region`, `Income Group`
+ORDER BY ac.`Region`, ac.`Income Group`
 """)
 ```
 
@@ -506,6 +509,7 @@ order by b.`Region`, b.`Income Group`
 ## columns, Region in the rows and Percent of total in each cell of the table.
 
 run_sql_and_return_html(cnx,"""
+
 with base as (
   select `Region`, `Income Group`, count(*) as country_count
   from sp25_wilkinsonla_user.wdi_country
@@ -520,7 +524,6 @@ select
   round(sum(case when `Income Group` = 'Upper middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Upper middle income`,
   round(sum(case when `Income Group` = 'Lower middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Lower middle income`,
   round(sum(case when `Income Group` = 'Low income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Low income`,
-  round(sum(case when `Income Group` is null or `Income Group` = '' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Other`,
   round(sum(country_count) * 100.0 / total.total_countries, 2) as `Row Total`
 from base, total
 group by `Region`, total.total_countries
