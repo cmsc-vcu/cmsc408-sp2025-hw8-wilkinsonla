@@ -281,15 +281,15 @@ where `Income Group` IS NULL
 execute_ddl(cnx,"""
 update sp25_wilkinsonla_user.wdi_country
 set `Income Group` = 'High income'
-where `Short Name` = 'Venezuela'
+where `Short Name` = 'Venezuela';
 commit;
 """)
-
 ```
 ```{python}
 ## Now, display the country again to verify the change stuck!
 
 run_sql_and_return_html(cnx,"""
+
 select `Short Name`, `Country Code`, `Region`, `Income Group`
 from sp25_wilkinsonla_user.wdi_country
 where `Short Name` = 'Venezuela'
@@ -306,11 +306,10 @@ where `Short Name` = 'Venezuela'
 ## (skills: select, aggregate, group by, order by)
 
 run_sql_and_return_html(cnx,"""
-select country_region, income_category, count(*) as no_of_countries
-from world_bank_data.wdi_country
-where is_country = 1
-group by country_region, income_category
-order by country_region, income_category
+select `Region`, `Income Group`, count(*) as `no.of.countries`
+from sp25_wilkinsonla_user.wdi_country
+group by `Region`, `Income Group`
+order by `Region`, `Income Group`
 """)
 
 
