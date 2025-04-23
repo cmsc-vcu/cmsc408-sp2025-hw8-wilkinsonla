@@ -156,8 +156,8 @@ from sp25_wilkinsonla_user.wdi_country
 What are all unique values of region in the wdi_country table?
 
 ```{python}
-## Let's investigate the country_region field.
-## What is the domain of the country_region field? That is,
+## Let's investigate the `Region` field.
+## What is the domain of the `Region` field? That is,
 ## what are the unique values found there?
 ## (there are several possible ways to code this in SQL)
 ## (skills: select, aggregate, order by)
@@ -332,17 +332,16 @@ order by `Region`, `Income Group`
 
 run_sql_and_return_html(cnx,"""
 select 
-  country_region,
-  sum(case when income_category = 'High income' then 1 else 0 end) as high_income,
-  sum(case when income_category = 'Upper middle income' then 1 else 0 end) as upper_middle_income,
-  sum(case when income_category = 'Lower middle income' then 1 else 0 end) as lower_middle_income,
-  sum(case when income_category = 'Low income' then 1 else 0 end) as low_income,
-  sum(case when income_category is null or income_category = '' then 1 else 0 end) as other,
+  `Region`,
+  sum(case when `Income Group` = 'High income' then 1 else 0 end) as `High income`,
+  sum(case when `Income Group` = 'Upper middle income' then 1 else 0 end) as `Upper middle income`,
+  sum(case when `Income Group` = 'Lower middle income' then 1 else 0 end) as `Lower middle income`,
+  sum(case when `Income Group` = 'Low income' then 1 else 0 end) as `Low income`,
+  sum(case when `Income Group` is null or `Income Group` = '' then 1 else 0 end) as other,
   count(*) as total
-from world_bank_data.wdi_country
-where is_country = 1
-group by country_region
-order by country_region
+from sp25_wilkinsonla_user.wdi_country
+group by `Region`
+order by `Region`
 """)
 
 ```
@@ -362,14 +361,11 @@ order by country_region
 ## (skills: select, aggregate, group by, nested query, order by, limit)
 
 run_sql_and_return_html(cnx,"""
-select 
-  count(*) as low_income_count,
-  country_region,
-  income_category
-from world_bank_data.wdi_country
-where is_country = 1 and income_category = 'Low income'
-group by country_region, income_category
-order by low_income_count desc
+select count(*) as `Low_income_count`, `Region`, `Income Group`
+from sp25_wilkinsonla_user.wdi_country
+where `Income Group` = 'Low income'
+group by `Region`, `Income Group`
+order by `Low_income_count` desc
 limit 1
 """)
 
@@ -387,20 +383,19 @@ limit 1
 ## (skills: select, where, subquery)
 
 run_sql_and_return_html(cnx,"""
-select country_code, country_short_name, country_region, income_category
-from world_bank_data.wdi_country
-where is_country = 1
-and country_region = (
-    select country_region
-    from world_bank_data.wdi_country
-    where country_code = 'MHL'
+select `Country Code`, `Short Name`, `Region`, `Income Group`
+from sp25_wilkinsonla_user.wdi_country
+where `Region` = (
+    select `Region`
+    from sp25_wilkinsonla_user.wdi_country
+    where `Country Code` = 'MHL'
 )
-and income_category = (
-    select income_category
-    from world_bank_data.wdi_country
-    where country_code = 'MHL'
+and `Income Group` = (
+    select `Income Group`
+    from sp25_wilkinsonla_user.wdi_country
+    where `Country Code` = 'MHL'
 )
-order by country_short_name
+order by `Short Name`
 """)
 
 ```
@@ -426,29 +421,27 @@ order by country_short_name
 
 run_sql_and_return_html(cnx,"""
 with regions as (
-  select distinct country_region from world_bank_data.wdi_country where is_country = 1
+  select distinct `Region` from sp25_wilkinsonla_user.wdi_country
 ),
 income_groups as (
-  select distinct income_category from world_bank_data.wdi_country where is_country = 1
+  select distinct `Income Group` from sp25_wilkinsonla_user.wdi_country
 ),
 all_combos as (
-  select r.country_region, i.income_category
+  select r.`Region`, i.`Income Group`
   from regions r
   cross join income_groups i
 ),
 actual_combos as (
-  select distinct country_region, income_category
-  from world_bank_data.wdi_country
-  where is_country = 1
+  select distinct `Region`, `Income Group`
+  from sp25_wilkinsonla_user.wdi_country
 )
 select *
 from all_combos
-where (country_region, income_category) not in (
-  select country_region, income_category from actual_combos
+where (`Region`, `Income Group`) not in (
+  select `Region`, `Income Group` from actual_combos
 )
-order by country_region, income_category
+order by `Region`, `Income Group`
 """)
-
 ```
 
 ## Task 19
@@ -471,37 +464,36 @@ order by country_region, income_category
 
 run_sql_and_return_html(cnx,"""
 with base as (
-  select country_region, income_category, count(*) as country_count
-  from world_bank_data.wdi_country
-  where is_country = 1
-  group by country_region, income_category
+  select `Region`, `Income Group`, count(*) as country_count
+  from sp25_wilkinsonla_user.wdi_country
+  group by `Region`, `Income Group`
 ),
 region_totals as (
-  select country_region, sum(country_count) as region_total
+  select `Region`, sum(country_count) as region_total
   from base
-  group by country_region
+  group by `Region`
 ),
 income_totals as (
-  select income_category, sum(country_count) as income_total
+  select `Income Group`, sum(country_count) as income_total
   from base
-  group by income_category
+  group by `Income Group`
 ),
 overall_total as (
   select sum(country_count) as total from base
 )
 select 
-  b.country_region,
-  b.income_category,
+  b.`Region`,
+  b.`Income Group`,
   b.country_count,
   r.region_total,
   i.income_total,
   o.total,
   round((b.country_count * 100.0) / o.total, 2) as percent_of_total
 from base b
-join region_totals r on b.country_region = r.country_region
-join income_totals i on b.income_category = i.income_category
+join region_totals r on b.`Region` = r.`Region`
+join income_totals i on b.`Income Group` = i.`Income Group`
 join overall_total o
-order by b.country_region, b.income_category
+order by b.`Region`, b.`Income Group`
 """)
 
 ```
@@ -515,25 +507,24 @@ order by b.country_region, b.income_category
 
 run_sql_and_return_html(cnx,"""
 with base as (
-  select country_region, income_category, count(*) as country_count
-  from world_bank_data.wdi_country
-  where is_country = 1
-  group by country_region, income_category
+  select `Region`, `Income Group`, count(*) as country_count
+  from sp25_wilkinsonla_user.wdi_country
+  group by `Region`, `Income Group`
 ),
 total as (
   select sum(country_count) as total_countries from base
 )
 select 
-  country_region,
-  round(sum(case when income_category = 'High income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as high_income_pct,
-  round(sum(case when income_category = 'Upper middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as upper_middle_pct,
-  round(sum(case when income_category = 'Lower middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as lower_middle_pct,
-  round(sum(case when income_category = 'Low income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as low_income_pct,
-  round(sum(case when income_category is null or income_category = '' then country_count else 0 end) * 100.0 / total.total_countries, 2) as other_pct,
-  round(sum(country_count) * 100.0 / total.total_countries, 2) as row_total_pct
+  `Region`,
+  round(sum(case when `Income Group` = 'High income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `High income`,
+  round(sum(case when `Income Group` = 'Upper middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Upper middle income`,
+  round(sum(case when `Income Group` = 'Lower middle income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Lower middle income`,
+  round(sum(case when `Income Group` = 'Low income' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Low income`,
+  round(sum(case when `Income Group` is null or `Income Group` = '' then country_count else 0 end) * 100.0 / total.total_countries, 2) as `Other`,
+  round(sum(country_count) * 100.0 / total.total_countries, 2) as `Row Total`
 from base, total
-group by country_region, total.total_countries
-order by country_region
+group by `Region`, total.total_countries
+order by `Region`
 """)
 
 ```
@@ -549,16 +540,15 @@ order by country_region
 
 run_sql_and_return_html(cnx,"""
 with base as (
-  select income_category, count(*) as count
-  from world_bank_data.wdi_country
-  where is_country = 1
-  group by income_category
+  select `Income Group`, count(*) as count
+  from sp25_wilkinsonla_user.wdi_country
+  group by `Income Group`
 ),
 total as (
   select sum(count) as total_count from base
 )
 select 
-  b.income_category,
+  b.`Income Group`,
   b.count as num_countries,
   t.total_count,
   round((b.count * 100.0) / t.total_count, 2) as percent
